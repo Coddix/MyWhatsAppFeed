@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { OgMetadata } from "@/lib/types";
+
+export type OgMetadata = {
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  publisher?: string;
+};
 
 const cache = new Map<string, OgMetadata | null>();
 const inflight = new Map<string, Promise<OgMetadata | null>>();

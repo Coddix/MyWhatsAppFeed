@@ -1,33 +1,53 @@
 "use client";
 
-import useSWR from "swr";
-import { useState } from "react";
-import { MessageSquare, Users, Star, Upload, Inbox } from "lucide-react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { MessageSquare, Users, Star, Upload, Inbox, LogOut } from "lucide-react";
 import { ImportDialog } from "./ImportDialog";
-import type { ConversationSummary } from "@/lib/types";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { listConversations, type DecryptedConversation } from "@/lib/db-client";
+import { useAuth, useEncryptionKey } from "@/contexts/AuthContext";
 
 export function Sidebar({
   activeConversationId,
   showBookmarked,
+  refreshKey,
   onSelectConversation,
   onToggleBookmarked,
+  onDataChanged,
 }: {
   activeConversationId?: string;
   showBookmarked: boolean;
+  refreshKey: number;
   onSelectConversation: (id: string | undefined) => void;
   onToggleBookmarked: () => void;
+  onDataChanged: () => void;
 }) {
-  const { data: conversations, mutate } = useSWR<ConversationSummary[]>("/api/conversations", fetcher);
+  const { lock } = useAuth();
+  const key = useEncryptionKey();
+  const [conversations, setConversations] = useState<DecryptedConversation[] | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    listConversations(key).then((data) => {
+      if (active) setConversations(data);
+    });
+    return () => {
+      active = false;
+    };
+  }, [key, refreshKey]);
 
   return (
     <aside className="flex h-full w-72 flex-col border-r border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-gray-900/50">
       <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-800">
-        <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-50">
-          MyWhatsAppFeed
-        </h1>
+        <Image
+          src="/logo.png"
+          alt="MyWhatsAppFeed"
+          width={200}
+          height={48}
+          className="h-10 w-auto"
+          priority
+        />
       </div>
 
       <div className="flex flex-col gap-1 p-2">
@@ -86,12 +106,18 @@ export function Sidebar({
         ))}
       </nav>
 
-      <div className="border-t border-gray-200 p-2 dark:border-gray-800">
+      <div className="flex flex-col gap-2 border-t border-gray-200 p-2 dark:border-gray-800">
         <button
           onClick={() => setImportOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
         >
           <Upload size={16} /> Import Chat
+        </button>
+        <button
+          onClick={lock}
+          className="flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-xs text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+        >
+          <LogOut size={14} /> Lock
         </button>
       </div>
 
@@ -100,7 +126,7 @@ export function Sidebar({
           onClose={() => setImportOpen(false)}
           onImported={() => {
             setImportOpen(false);
-            mutate();
+            onDataChanged();
           }}
         />
       )}

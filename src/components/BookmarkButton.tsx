@@ -2,6 +2,8 @@
 
 import { Star } from "lucide-react";
 import { useState } from "react";
+import { setBookmark, removeBookmark } from "@/lib/db-client";
+import { useEncryptionKey } from "@/contexts/AuthContext";
 
 export function BookmarkButton({
   messageId,
@@ -12,27 +14,21 @@ export function BookmarkButton({
   initiallyBookmarked: boolean;
   onChange?: (bookmarked: boolean) => void;
 }) {
-  const [bookmarked, setBookmarked] = useState(initiallyBookmarked);
+  const key = useEncryptionKey();
+  const [bookmarked, setBookmarkedState] = useState(initiallyBookmarked);
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
     if (busy) return;
     setBusy(true);
     const next = !bookmarked;
-    setBookmarked(next);
+    setBookmarkedState(next);
     try {
-      if (next) {
-        await fetch("/api/bookmarks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messageId }),
-        });
-      } else {
-        await fetch(`/api/bookmarks?messageId=${messageId}`, { method: "DELETE" });
-      }
+      if (next) await setBookmark(key, messageId);
+      else await removeBookmark(messageId);
       onChange?.(next);
     } catch {
-      setBookmarked(!next);
+      setBookmarkedState(!next);
     } finally {
       setBusy(false);
     }

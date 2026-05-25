@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Upload, X } from "lucide-react";
+import { parseWhatsAppExport } from "@/lib/parser";
+import { importMessages } from "@/lib/db-client";
+import { useEncryptionKey } from "@/contexts/AuthContext";
 
 export function ImportDialog({
   onClose,
@@ -10,6 +13,7 @@ export function ImportDialog({
   onClose: () => void;
   onImported: () => void;
 }) {
+  const key = useEncryptionKey();
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [isGroup, setIsGroup] = useState(false);
@@ -20,16 +24,16 @@ export function ImportDialog({
     if (!file) return;
     setUploading(true);
     setError(null);
-    const formData = new FormData();
-    formData.append("file", file);
-    if (name) formData.append("name", name);
-    formData.append("isGroup", isGroup ? "true" : "false");
     try {
-      const res = await fetch("/api/import", { method: "POST", body: formData });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Import failed");
+      const text = await file.text();
+      const conversationName =
+        name.trim() ||
+        file.name.replace(/\.txt$/i, "").replace(/^WhatsApp Chat with\s+/i, "");
+      const parsed = parseWhatsAppExport(text, conversationName, isGroup);
+      if (parsed.messages.length === 0) {
+        throw new Error("No messages found. Is this a WhatsApp .txt export?");
       }
+      await importMessages(key, parsed.conversationName, isGroup, parsed.messages);
       onImported();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Import failed");

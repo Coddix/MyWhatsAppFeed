@@ -12,14 +12,19 @@ export default function Home() {
   const [hasLinks, setHasLinks] = useState(false);
   const [mediaType, setMediaType] = useState<string | undefined>();
   const [bookmarked, setBookmarked] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const bumpRefresh = () => setRefreshKey((k) => k + 1);
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-950">
       <Sidebar
         activeConversationId={conversationId}
         showBookmarked={bookmarked}
+        refreshKey={refreshKey}
         onSelectConversation={setConversationId}
         onToggleBookmarked={() => setBookmarked((b) => !b)}
+        onDataChanged={bumpRefresh}
       />
       <main className="flex flex-1 flex-col overflow-hidden">
         <header className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
@@ -40,6 +45,8 @@ export default function Home() {
             hasLinks={hasLinks}
             mediaType={mediaType}
             bookmarked={bookmarked}
+            refreshKey={refreshKey}
+            onDataChanged={bumpRefresh}
           />
         </div>
       </main>

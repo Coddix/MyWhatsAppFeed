@@ -1,28 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import useSWRInfinite from "swr/infinite";
+import { useEffect, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { MessageCard } from "./MessageCard";
-import type { MessagesResponse, MessageWithRelations } from "@/lib/types";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-function buildKey(
-  pageIndex: number,
-  previousPageData: MessagesResponse | null,
-  filters: Record<string, string | undefined>
-): string | null {
-  if (previousPageData && previousPageData.nextCursor === null) return null;
-  const params = new URLSearchParams();
-  for (const [k, v] of Object.entries(filters)) {
-    if (v) params.set(k, v);
-  }
-  if (pageIndex > 0 && previousPageData?.nextCursor) {
-    params.set("cursor", previousPageData.nextCursor);
-  }
-  return `/api/messages?${params.toString()}`;
-}
+import { queryMessages, type DecryptedMessage } from "@/lib/db-client";
+import { useEncryptionKey } from "@/contexts/AuthContext";
 
 export function MessageList({
   conversationId,
@@ -30,47 +12,34 @@ export function MessageList({
   hasLinks,
   mediaType,
   bookmarked,
+  refreshKey,
+  onDataChanged,
 }: {
   conversationId?: string;
   search?: string;
   hasLinks?: boolean;
   mediaType?: string;
   bookmarked?: boolean;
+  refreshKey: number;
+  onDataChanged: () => void;
 }) {
-  const filters = {
-    conversationId,
-    search,
-    hasLinks: hasLinks ? "true" : undefined,
-    mediaType,
-    bookmarked: bookmarked ? "true" : undefined,
-  };
-
-  const { data, size, setSize, isValidating } = useSWRInfinite<MessagesResponse>(
-    (i, prev) => buildKey(i, prev, filters),
-    fetcher,
-    { revalidateFirstPage: false }
-  );
-
-  const messages: MessageWithRelations[] = data ? data.flatMap((d) => d.messages) : [];
-  const hasMore = data ? data[data.length - 1]?.nextCursor !== null : true;
-  const loaderRef = useRef<HTMLDivElement>(null);
+  const key = useEncryptionKey();
+  const [messages, setMessages] = useState<DecryptedMessage[] | null>(null);
 
   useEffect(() => {
-    const el = loaderRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasMore && !isValidating) {
-          setSize((s) => s + 1);
-        }
-      },
-      { rootMargin: "400px" }
+    let active = true;
+    setMessages(null);
+    queryMessages(key, { conversationId, search, hasLinks, mediaType, bookmarked }).then(
+      (data) => {
+        if (active) setMessages(data);
+      }
     );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasMore, isValidating, setSize]);
+    return () => {
+      active = false;
+    };
+  }, [key, conversationId, search, hasLinks, mediaType, bookmarked, refreshKey]);
 
-  if (!data && isValidating) {
+  if (messages === null) {
     return (
       <div className="space-y-4 p-4">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -89,7 +58,7 @@ export function MessageList({
     );
   }
 
-  const grouped: Array<{ date: Date; messages: MessageWithRelations[] }> = [];
+  const grouped: Array<{ date: Date; messages: DecryptedMessage[] }> = [];
   for (const msg of messages) {
     const d = new Date(msg.timestamp);
     const last = grouped[grouped.length - 1];
@@ -105,12 +74,17 @@ export function MessageList({
             {format(group.date, "EEEE, MMM d, yyyy")}
           </h2>
           {group.messages.map((m) => (
-            <MessageCard key={m.id} message={m} showConversation={!conversationId} />
+            <MessageCard
+              key={m.id}
+              message={m}
+              showConversation={!conversationId}
+              onBookmarkChanged={onDataChanged}
+            />
           ))}
         </section>
       ))}
-      <div ref={loaderRef} className="py-8 text-center text-xs text-gray-400">
-        {hasMore ? (isValidating ? "Loading…" : "") : "End of messages"}
+      <div className="py-8 text-center text-xs text-gray-400">
+        {messages.length} message{messages.length === 1 ? "" : "s"}
       </div>
     </div>
   );

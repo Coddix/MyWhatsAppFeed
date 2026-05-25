@@ -16,7 +16,10 @@
       "Bash(curl -s \"http://localhost:3091/api/messages?search=youtube&hasLinks=true\")",
       "Bash(python3 -c \"import sys, json; d=json.load\\(sys.stdin\\); [print\\(m['sender'], '-', m['content'][:80]\\) for m in d['messages']]\")",
       "mcp__Claude_in_Chrome__list_connected_browsers",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm uninstall *)",
+      "Bash(find ~/Downloads ~/Desktop -name \"*logo*\" -o -name \"*whatsapp*\" 2>/dev/null | head -20)",
+      "Bash(cp /Users/coddix/Downloads/mywhatsappfeed-logo-hq.png /Users/coddix/www/coddix/public/logo.png && ls -la /Users/coddix/www/coddix/public/logo.png)"
     ]
   }
 }

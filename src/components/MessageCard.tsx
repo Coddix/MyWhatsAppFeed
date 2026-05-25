@@ -6,7 +6,7 @@ import { MediaBadge } from "./MediaBadge";
 import { BookmarkButton } from "./BookmarkButton";
 import { LinkPreview } from "./LinkPreview";
 import { PlatformIcon } from "./PlatformIcon";
-import type { MessageWithRelations } from "@/lib/types";
+import type { DecryptedMessage } from "@/lib/db-client";
 
 function senderColor(name: string): string {
   let hash = 0;
@@ -53,7 +53,15 @@ function renderContent(content: string, urls: string[]) {
   );
 }
 
-export function MessageCard({ message, showConversation }: { message: MessageWithRelations; showConversation?: boolean }) {
+export function MessageCard({
+  message,
+  showConversation,
+  onBookmarkChanged,
+}: {
+  message: DecryptedMessage;
+  showConversation?: boolean;
+  onBookmarkChanged?: () => void;
+}) {
   const urls = extractUrls(message.content);
   const platforms = Array.from(new Set(urls.map(detectPlatform).filter(Boolean)));
   const time = format(new Date(message.timestamp), "HH:mm");
@@ -65,7 +73,7 @@ export function MessageCard({ message, showConversation }: { message: MessageWit
           <span className={`font-semibold ${senderColor(message.sender)}`}>{message.sender}</span>
           <span className="text-gray-400">{time}</span>
           {showConversation && (
-            <span className="truncate text-gray-400">· {message.conversation.name}</span>
+            <span className="truncate text-gray-400">· {message.conversationName}</span>
           )}
           {message.mediaType && <MediaBadge type={message.mediaType} />}
           {platforms.length > 0 && (
@@ -76,7 +84,11 @@ export function MessageCard({ message, showConversation }: { message: MessageWit
             </span>
           )}
           <div className="ml-auto opacity-0 transition group-hover:opacity-100">
-            <BookmarkButton messageId={message.id} initiallyBookmarked={!!message.bookmark} />
+            <BookmarkButton
+              messageId={message.id}
+              initiallyBookmarked={!!message.bookmark}
+              onChange={onBookmarkChanged}
+            />
           </div>
         </header>
         <p className="whitespace-pre-wrap break-words text-sm text-gray-800 dark:text-gray-200">
