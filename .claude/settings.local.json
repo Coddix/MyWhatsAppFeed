@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(npx next *)",
+      "Bash(node -e \"const i = require\\('lucide-react'\\); console.log\\(Object.keys\\(i\\).filter\\(k => /^\\(You|Twi|Ins|Fac|Lin|Git|Mus|Mes|Link\\)/.test\\(k\\)\\).slice\\(0,30\\)\\)\")",
+      "Bash(npm install *)",
+      "Bash(npm view *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3091/)",
+      "Bash(curl -s http://localhost:3091/api/conversations)",
+      "Bash(curl -s -X POST -F \"file=@/tmp/sample-chat.txt\" -F \"name=Test Chat\" -F \"isGroup=true\" http://localhost:3091/api/import)",
+      "Bash(curl -s \"http://localhost:3091/api/messages?limit=3\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST -H 'Content-Type: application/json' -d '{\"messageId\":\"cmplg6dtl000ehx8ob8z7utrh\"}' http://localhost:3091/api/bookmarks)",
+      "Bash(curl -s \"http://localhost:3091/api/messages?bookmarked=true\")",
+      "Bash(curl -s \"http://localhost:3091/api/messages?search=youtube&hasLinks=true\")",
+      "Bash(python3 -c \"import sys, json; d=json.load\\(sys.stdin\\); [print\\(m['sender'], '-', m['content'][:80]\\) for m in d['messages']]\")",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

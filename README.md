@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyWhatsAppFeed
 
-## Getting Started
+A modern, clean web app to browse, search, and filter your WhatsApp chat exports.
 
-First, run the development server:
+## Features
+
+- **Import WhatsApp exports** — Upload `.txt` chat exports (Settings → Export Chat → Without Media)
+- **Filter by conversation** — Browse a single chat or all messages
+- **Full-text search** — Find any message by keyword
+- **Social media link detection** — YouTube, X, Instagram, TikTok, Facebook, LinkedIn, Reddit, Spotify, GitHub, WhatsApp links get platform icons
+- **Link previews** — Open Graph metadata (title, description, thumbnail) loaded in a side column
+- **Media badges** — Visual badges for images, videos, voice notes, documents, and locations
+- **Bookmark messages** — Star important messages and filter by them
+
+## Tech stack
+
+- Next.js 16 (App Router) + Tailwind CSS
+- SQLite via Prisma
+- SWR for data fetching
+- react-icons for brand logos
+- microlink.io for client-side OG metadata
+
+## Setup
 
 ```bash
+npm install
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>, click **Import Chat**, and upload a WhatsApp `.txt` export.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How to export a WhatsApp chat
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Open the chat in WhatsApp
+2. Tap the contact/group name to open chat info
+3. Scroll down and tap **Export Chat**
+4. Choose **Without Media**
+5. Save the `.txt` file and upload it in MyWhatsAppFeed
